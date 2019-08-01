@@ -22,4 +22,5 @@ Example
 
 Reference
 --------------
-F. N. Fritsch and R. E. Carlson, *Monotone Piecewise Cubic Interpolation*, SIAM. **17**, 2 (1980). [Link](https://epubs.siam.org/doi/10.1137/0717021)
+1. F. N. Fritsch and R. E. Carlson, *Monotone Piecewise Cubic Interpolation*, SIAM. **17**, 2 (1980). [Link](https://epubs.siam.org/doi/10.1137/0717021)
+2. R. L. Dougherty, A. Edelman, and J.M. Hyman, *Positivity-, monotonicity-, or convexity-preserving cubic and quintic Hermite interpolation*, Mathematics of Computation. **52**, 186 (1989). [Link](https://www.ams.org/journals/mcom/1989-52-186/S0025-5718-1989-0962209-1/home.html)
