@@ -52,10 +52,10 @@ class mCubicInterp (cubicHermiteSpline):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    x0 = np.linspace(1, np.pi*5, 30)
+    x0 = np.linspace(0, np.pi*5, 30)
     y0 = np.sin(x0)*x0
     interpolator = mCubicInterp(x0, y0)
-    x1 = np.linspace(1, np.pi*5, 300)
+    x1 = np.linspace(0, np.pi*5, 300)
     y1 = np.array([interpolator(x) for x in x1])
     # plot the results on the graph through matplotlib
     plt.plot(x0, y0, marker = 'o', color = 'r', label = 'Original', markersize = 5, linestyle = 'None', zorder = 3)
