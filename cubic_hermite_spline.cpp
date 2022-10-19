@@ -14,14 +14,10 @@ public:
                        const T * y_ptr,
                        const T * m_ptr,
                        const size_t size):
-    size_(size) {
-        x_.resize(size_);
-        y_.resize(size_);
-        m_.resize(size_);
-		std::memcpy(x_.data(), x_ptr, sizeof(T) * size_);
-		std::memcpy(y_.data(), y_ptr, sizeof(T) * size_);
-		std::memcpy(m_.data(), m_ptr, sizeof(T) * size_);
-    }
+        x_(x_ptr, x_ptr + size),
+        y_(y_ptr, y_ptr + size),
+        m_(m_ptr, m_ptr + size),
+        size_(size) {}
 
     T get_interpolated_value(const T x) const {
 		const size_t idx = binary_search_(x);
