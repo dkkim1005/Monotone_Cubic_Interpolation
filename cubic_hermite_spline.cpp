@@ -25,12 +25,12 @@ public:
 		    return y_[size_-1];
 		const T t = (x - x_[idx]) / (x_[idx+1] - x_[idx]);
 		return interp_func_(t, idx);
-	}
+    }
 
 private:
     bool is_x_in_boundary(const size_t idx, const T x) const {
 	    return (x_[idx] <= x) && (x < x_[idx+1]);
-	}
+    }
 
     size_t binary_search_(const T x) const {
         assert((x_[0] <= x) && (x <= x_[size_-1]));
@@ -53,7 +53,7 @@ private:
                 idx = (idx_r - idx_l) / 2 + idx_l;
             }
         }
-	}
+    }
 
     T interp_func_(const T t, const size_t idx) const {
         return (2 * std::pow(t, 3) - 3 * std::pow(t, 2) + 1) * y_[idx] +
