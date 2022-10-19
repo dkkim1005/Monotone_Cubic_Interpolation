@@ -20,16 +20,16 @@ public:
         size_(size) {}
 
     T get_interpolated_value(const T x) const {
-		const size_t idx = binary_search_(x);
-		if(idx == size_ - 1)
-		    return y_[size_-1];
-		const T t = (x - x_[idx]) / (x_[idx+1] - x_[idx]);
-		return interp_func_(t, idx);
+        const size_t idx = binary_search_(x);
+        if(idx == size_ - 1)
+            return y_[size_-1];
+        const T t = (x - x_[idx]) / (x_[idx+1] - x_[idx]);
+        return interp_func_(t, idx);
     }
 
 private:
     bool is_x_in_boundary(const size_t idx, const T x) const {
-	    return (x_[idx] <= x) && (x < x_[idx+1]);
+        return (x_[idx] <= x) && (x < x_[idx+1]);
     }
 
     size_t binary_search_(const T x) const {
