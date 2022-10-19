@@ -1,184 +1,115 @@
-#include <iostream>
-#include <cstring>
 #include <cmath>
-#include <functional>
-#include <cassert>
 #include <vector>
+#include <memory>
+#include <cassert>
 #include <fstream>
+#include <cstring>
+#include <iostream>
 
 
-class CubicHermiteSpline
-{
+template <typename T>
+class CubicHermiteSpline {
 public:
-	CubicHermiteSpline(const double* xVec, const double* yVec, const double* mVec, const size_t size)
-	: xVec_(nullptr), yVec_(nullptr), mVec_(nullptr), size_(0)
-	{
-		allocate_heap_memory_(xVec, yVec, mVec, size);
-	}
+	CubicHermiteSpline(const T * x_ptr,
+                       const T * y_ptr,
+                       const T * m_ptr,
+                       const size_t size):
+    size_(size) {
+        x_.resize(size_);
+        y_.resize(size_);
+        m_.resize(size_);
+		std::memcpy(x_.data(), x_ptr, sizeof(T) * size_);
+		std::memcpy(y_.data(), y_ptr, sizeof(T) * size_);
+		std::memcpy(m_.data(), m_ptr, sizeof(T) * size_);
+    }
 
-
-	virtual ~CubicHermiteSpline()
-	{
-		delete_heap_memory_();
-	}
-
-
-	double operator()(const double x) const
-	{
+    T get_interpolated_value(const T x) const {
 		const size_t idx = binary_search_(x);
-
-		if(idx == size_ - 1) {
-			return yVec_[size_-1];
-		}
-
-		const double t = (x - xVec_[idx])/(xVec_[idx+1] - xVec_[idx]);
-
-		return interp_f_(t, idx);
+		if(idx == size_ - 1)
+		    return y_[size_-1];
+		const T t = (x - x_[idx]) / (x_[idx+1] - x_[idx]);
+		return interp_func_(t, idx);
 	}
 
-
-protected:
-	double* xVec_;
-	double* yVec_;
-	double* mVec_;
-	size_t size_;
-
-	explicit CubicHermiteSpline()
-	: xVec_(nullptr), yVec_(nullptr), mVec_(nullptr), size_(0)
-	{}
-
-
-	void delete_heap_memory_()
-	{
-		if(xVec_ != nullptr) {
-			delete [] xVec_;
-		}
-		if(yVec_ != nullptr) {
-			delete [] yVec_;
-		}
-		if(mVec_ != nullptr) {
-			delete [] mVec_;
-		}
+private:
+    bool is_x_in_boundary(const size_t idx, const T x) const {
+	    return (x_[idx] <= x) && (x < x_[idx+1]);
 	}
 
-
-	void allocate_heap_memory_(const double* xVec, const double* yVec, const double* mVec, const size_t size)
-	{
-		delete_heap_memory_();
-
-		xVec_ = new double [size];
-		yVec_ = new double [size];
-		mVec_ = new double [size];
-		size_ = size;
-
-		std::memcpy(xVec_, xVec,sizeof(double)*size);
-		std::memcpy(yVec_, yVec,sizeof(double)*size);
-		std::memcpy(mVec_, mVec,sizeof(double)*size);
-	}
-
-
-	size_t binary_search_(const double& x) const
-	{
-		assert(xVec_[0] <= x and x <= xVec_[size_-1]);
-		size_t idx_l = 0, idx_r = size_ - 1, idx = size_/2;
-
-		auto is_x_in_Boundary = [this, &x](const size_t& idx) -> bool
-					{
-						return this -> xVec_[idx] <= x and x < this -> xVec_[idx + 1];
-					};
-
-		while(1)
-		{
-			if(idx_r - idx_l == 1) 
-			{
-				if(is_x_in_Boundary(idx)) {
+	size_t binary_search_(const T x) const {
+	    assert((x_[0] <= x) && (x <= x_[size_-1]));
+		size_t idx_l = 0, idx_r = size_ - 1, idx = size_ / 2;
+		while (1) {
+			if(idx_r - idx_l == 1)  {
+				if(is_x_in_boundary(idx, x))
 					return idx;
-				}
-				else {
-					return idx + 1;
-				}
+				else
+					return (idx + 1);
 			}
-
-			if(is_x_in_Boundary(idx)) {
+			if(is_x_in_boundary(idx, x))
 				return idx;
-			}
-			else if(xVec_[idx+1] <= x)
-			{
+			else if(x_[idx+1] <= x) {
 				idx_l = idx;
-				idx = (idx_r - idx_l)/2 + idx_l;
+				idx = (idx_r - idx_l) / 2 + idx_l;
 			}
-			else
-			{
+			else {
 				idx_r = idx;
-				idx = (idx_r - idx_l)/2 + idx_l;
+				idx = (idx_r - idx_l) / 2 + idx_l;
 			}
 		}
 	}
 
-
-	double interp_f_(const double& t, const size_t& idx) const
-	{
-		return (2*std::pow(t,3) - 3*std::pow(t,2) + 1)*yVec_[idx] +
-		(std::pow(t,3) - 2*std::pow(t,2) + t)*(xVec_[idx+1] - xVec_[idx])*mVec_[idx] +
-		(-2*std::pow(t,3) + 3*std::pow(t,2))*yVec_[idx+1] +
-		(std::pow(t,3) - std::pow(t,2))*(xVec_[idx+1] - xVec_[idx])*mVec_[idx+1];
+	T interp_func_(const T t, const size_t idx) const {
+	    return (2 * std::pow(t, 3) - 3 * std::pow(t, 2) + 1) * y_[idx] +
+		       (std::pow(t, 3) - 2 * std::pow(t, 2) + t) * (x_[idx+1] - x_[idx]) * m_[idx] +
+		       (-2 * std::pow(t, 3) + 3 * std::pow(t, 2)) * y_[idx+1] +
+		       (std::pow(t, 3) - std::pow(t, 2))*(x_[idx+1] - x_[idx]) * m_[idx+1];
 	}
+
+    std::vector<T> x_, y_, m_;
+	size_t size_;
 };
 
 
-class MonotoneCubicInterpolation : public CubicHermiteSpline
-{
+template <typename T>
+class MonotoneCubicInterpolation {
 public:
-	MonotoneCubicInterpolation(const double* xVec, const double* yVec, const size_t size)
-	: CubicHermiteSpline()
-	{
-		std::vector<double> delta(size, 0);
-		std::vector<double> mVec(size, 0);
-
-		for(int i=0; i<size-1; ++i) {
-			delta[i] = (yVec[i+1] - yVec[i])/(xVec[i+1] - xVec[i]);
+	MonotoneCubicInterpolation(const T * x_ptr, const T * y_ptr, const size_t size) {
+		std::vector<T> delta(size, 0);
+		std::vector<T> m(size, 0);
+		for(int i=0; i<size-1; ++i) delta[i] = (y_ptr[i+1] - y_ptr[i]) / (x_ptr[i+1] - x_ptr[i]);
+		for(int i=1; i<size-1; ++i) m[i] = (delta[i-1] + delta[i]) / 2;
+		m[0] = delta[0];
+        m[size-1] = delta[size-2];
+		for(int i=0; i<(size-1); ++i) {
+			if(std::abs(delta[i]) < keps)
+				m[i] = m[i+1] = 0;
 		}
-
-		for(int i=1; i<size-1; ++i) {
-			mVec[i] = (delta[i-1] + delta[i])/2.;
-		}
-	
-		mVec[0] = delta[0]; mVec[size-1] = delta[size-2];
-
-		for(int i=0; i<size-1; ++i)
-		{
-			if(std::abs(delta[i]) < 1e-30) {
-				mVec[i] = mVec[i+1] = 0.;
-			}
-		}
-
-		allocate_heap_memory_(xVec, yVec, &mVec[0], size);
+        spliner_ptr_ = std::make_unique<CubicHermiteSpline<T>>(x_ptr, y_ptr, m.data(), size);
 	}
 
-	virtual ~MonotoneCubicInterpolation() {}
-};
+    T operator()(const T x) const {
+        return spliner_ptr_ -> get_interpolated_value(x);
+    }
 
+private:
+    static constexpr const T keps = 1e-10;
+    std::unique_ptr<CubicHermiteSpline<T>> spliner_ptr_;
+};
 
 
 int main(int argc, char* argv[])
 {
-	std::vector<double> x = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
-	std::vector<double> y(11, 0);
-
-
-	for(int i=0; i<x.size(); ++i) {
-		y[i] = std::sin(x[i]);
-	}
-
-	MonotoneCubicInterpolation tester(&x[0], &y[0], 11);
-
+    using T = double;
+	std::vector<T> x = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
+	std::vector<T> y(x.size(), 0);
+	for(int i=0; i<x.size(); ++i) y[i] = std::sin(x[i]);
+	MonotoneCubicInterpolation<T> tester(x.data(), y.data(), x.size());
 	std::ofstream file("tester.out");
-
-	for(int i=0; i<100; ++i) 
-	{
-		double x = i/100.;
-		file<<x<<" "<<tester(x)<<"\n";
+    const int nPoints = 100;
+	for(int i=0; i<nPoints; ++i) {
+		auto x = i / static_cast<T>(nPoints);
+		file << x << " " << tester(x) << "\n";
 	}
-
 	return 0;
 }
